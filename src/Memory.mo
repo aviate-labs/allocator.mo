@@ -7,6 +7,8 @@ import {
 } = "mo:⛔";
 
 import Checked "Checked";
+import { le2n32; le2n64 } = "LittleEndian";
+import Storable "Storable";
 
 module {
     // WebAssembly page sizes are fixed to be 64KiB.
@@ -29,21 +31,16 @@ module {
         write : (offset : Nat64, src : [Nat8]) -> ();
     };
 
-    private func nat8to32 (n : Nat8) : Nat32 = intToNat32Wrap(nat8ToNat(n));
-
     public func readNat32({ read } : Memory, addr : Address) : Nat32 {
         let b = Array_init<Nat8>(4, 0);
         read(addr, b);
-        nat8to32(b[0]) | nat8to32(b[1]) << 8 | nat8to32(b[2]) << 16 | nat8to32(b[3]) << 24;
+        le2n32(b, 0);
     };
-
-    private func nat8to64 (n : Nat8) : Nat64 = intToNat64Wrap(nat8ToNat(n));
 
     public func readNat64({ read } : Memory, addr : Address) : Nat64 {
         let b = Array_init<Nat8>(8, 0);
         read(addr, b);
-        nat8to64(b[0])       | nat8to64(b[1]) << 8  | nat8to64(b[2]) << 16 | nat8to64(b[3]) << 24 |
-        nat8to64(b[0]) << 32 | nat8to64(b[1]) << 40 | nat8to64(b[2]) << 48 | nat8to64(b[3]) << 56;
+        le2n64(b, 0);
     };
 
     private func nat32to8 (n : Nat32) : Nat8 = intToNat8Wrap(nat32ToNat(n)); 
@@ -111,5 +108,15 @@ module {
         case (? #Grow({ size; delta })) trap ("Failed to grow memory from " # debug_show(size) # " pages to " # debug_show(size + delta) # " pages (delta = " # debug_show(delta)  # " pages).");
         case (? #AddressSpaceOverflow)  trap ("Address space overflow.");
         case (null) {};
+    };
+
+    public func readStruct<T>({ read } : Memory, s : Storable.Struct<T>, addr: Address) : T {
+        let b = Array_init<Nat8>(nat64ToNat(s.sizeOf()), 0);
+        read(addr, b);
+        s.fromBytes(b);
+    };
+
+    public func writeStruct<T>({ write } : Memory, s : Storable.Struct<T>, addr: Address, t : T) {
+        write(addr, s.toBytes(t));
     };
 };
