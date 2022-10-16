@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+# You can just use `vessel sources` instead of this file!
+
+printf " --package allocator ../src"
+printf "\n"
