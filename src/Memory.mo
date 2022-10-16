@@ -45,8 +45,8 @@ module {
 
     private func nat32to8 (n : Nat32) : Nat8 = intToNat8Wrap(nat32ToNat(n)); 
 
-    public func writeNat32({ write } : Memory, addr : Address, v : Nat32) {
-        write(addr, [
+    public func writeNat32(m : Memory, addr : Address, v : Nat32) {
+        write(m, addr, [
             nat32to8(v),
             nat32to8(v >> 8), 
             nat32to8(v >> 16),
@@ -56,8 +56,8 @@ module {
 
     private func nat64to8 (n : Nat64) : Nat8 = intToNat8Wrap(nat64ToNat(n)); 
 
-    public func writeNat64({ write } : Memory, addr : Address, v : Nat64) {
-        write(addr, [
+    public func writeNat64(m : Memory, addr : Address, v : Nat64) {
+        write(m, addr, [
             nat64to8(v),
             nat64to8(v >> 8), 
             nat64to8(v >> 16),
@@ -116,7 +116,7 @@ module {
         s.fromBytes(b);
     };
 
-    public func writeStruct<T>({ write } : Memory, s : Storable.Struct<T>, addr: Address, t : T) {
-        write(addr, s.toBytes(t));
+    public func writeStruct<T>(m : Memory, s : Storable.Struct<T>, addr: Address, t : T) {
+        write(m, addr, s.toBytes(t));
     };
 };
