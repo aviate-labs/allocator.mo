@@ -3,7 +3,7 @@ import {
     nat8ToNat;  intToNat8Wrap;
     nat32ToNat; intToNat32Wrap; 
     nat64ToNat; intToNat64Wrap; natToNat64;
-    Array_init; Array_tabulate;
+    Array_init; Array_tabulate; arrayMutToBlob;
 } = "mo:⛔";
 
 import Checked "Checked";
@@ -25,10 +25,17 @@ module {
         grow  : (n : Nat64) -> Int64;
         /// Copies the data referred to by {offset} out of the stable memory and
         /// replaces the corresponding bytes in {dst}.
-        read  : (offset : Nat64, dst : [var Nat8]) -> ();
+        read : (offset : Nat64, dst : [var Nat8]) -> ();
         /// Copies the data referred to by {src} and replaces the corresponding
         /// segment starting at {offset} in the stable memory.
-        write : (offset : Nat64, src : [Nat8]) -> ();
+        write     : (offset : Nat64, src : [Nat8]) -> ();
+        writeBlob : (offset : Nat64, src : Blob) -> ();
+    };
+
+    public func readToBlob({ read } : Memory, addr : Address, size : Nat) : Blob {
+        let b = Array_init<Nat8>(size, 0);
+        read(addr, b);
+        arrayMutToBlob(b);
     };
 
     public func readNat32({ read } : Memory, addr : Address) : Nat32 {
@@ -104,7 +111,40 @@ module {
         null;
     };
 
+    public func writeSafeBlob(m : Memory, offset : Nat64, bytes : Blob) : ?Error {
+        let last = switch (Checked.add(offset, natToNat64(bytes.size()))) {
+            case (null) return ?#AddressSpaceOverflow;
+            case (? last) last;
+        };
+
+        let msize = m.size();
+        let size = switch (Checked.mul(msize, WASM_PAGE_SIZE)) {
+            case (null) return ?#AddressSpaceOverflow;
+            case (? size) size;
+        };
+
+        if (size < last) {
+            let diff = last - size;
+            let diffp = switch (Checked.add(diff, WASM_PAGE_SIZE - 1)) {
+                case (null) return ?#AddressSpaceOverflow;
+                case (? diffp) diffp / WASM_PAGE_SIZE;
+            };
+            if (m.grow(diffp) == -1) return ?#Grow({
+                size  = msize;
+                delta = diffp;
+            });
+        };
+        m.writeBlob(offset, bytes);
+        null;
+    };
+
     public func write(m : Memory, offset : Nat64, bytes : [Nat8]) = switch (writeSafe(m, offset, bytes)) {
+        case (? #Grow({ size; delta })) trap ("Failed to grow memory from " # debug_show(size) # " pages to " # debug_show(size + delta) # " pages (delta = " # debug_show(delta)  # " pages).");
+        case (? #AddressSpaceOverflow)  trap ("Address space overflow.");
+        case (null) {};
+    };
+
+    public func writeBlob(m : Memory, offset : Nat64, bytes : Blob) = switch (writeSafeBlob(m, offset, bytes)) {
         case (? #Grow({ size; delta })) trap ("Failed to grow memory from " # debug_show(size) # " pages to " # debug_show(size + delta) # " pages (delta = " # debug_show(delta)  # " pages).");
         case (? #AddressSpaceOverflow)  trap ("Address space overflow.");
         case (null) {};

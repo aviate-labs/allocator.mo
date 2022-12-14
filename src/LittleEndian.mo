@@ -1,5 +1,6 @@
 import {
     intToNat8Wrap;  nat8ToNat;
+    intToNat16Wrap; nat16ToNat;
     intToNat32Wrap; nat32ToNat;
     intToNat64Wrap; nat64ToNat;
 } = "mo:⛔";
@@ -20,4 +21,13 @@ module {
         n8to32(bytes[i + 0])       | n8to32(bytes[i + 1]) << 8 |
         n8to32(bytes[i + 2]) << 16 | n8to32(bytes[i + 3]) << 24;
     };
+
+    public func n16to8(n : Nat16) : Nat8 = intToNat8Wrap(nat16ToNat(n)); 
+    public func n8to16(n : Nat8) : Nat16 = intToNat16Wrap(nat8ToNat(n));
+
+    public func le2n16(bytes : [var Nat8], i : Nat) : Nat16 {
+        n8to16(bytes[i + 0]) | n8to16(bytes[i + 1]) << 8;
+    };
+
+    public func n32to64(n : Nat32) : Nat64 = intToNat64Wrap(nat32ToNat(n));
 };

@@ -42,5 +42,16 @@ module {
                 i += 1;
             };
         };
+
+        public func writeBlob(offset : Nat64, src : Blob) {
+            let s = memory.size();
+            let o = nat64ToNat(offset);
+            if (s < o + src.size()) ignore grow(intToNat64Wrap(o + src.size() - s));
+            var i = 0;
+            for (v in src.vals()) {
+                memory[o + i] := v;
+                i += 1;
+            };
+        };
     };
 };

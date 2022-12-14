@@ -1,11 +1,15 @@
 import {
-    arrayToBlob; blobToArray; nat64ToInt64; 
+    arrayToBlob; arrayMutToBlob; blobToArray; nat64ToInt64; 
     stableMemorySize; stableMemoryGrow;
     stableMemoryLoadBlob; stableMemoryStoreBlob
 } = "mo:⛔";
 import Memory "Memory";
 
 module {
+    private func writeBlob (offset : Nat64, src : Blob) {
+        stableMemoryStoreBlob(offset, src);
+    };
+ 
     public let stableMemory : Memory.Memory = {
         size = stableMemorySize;
         grow = func (delta : Nat64) : Int64 {
@@ -19,7 +23,8 @@ module {
             var i = 0; while (i < b.size()) dst[i] := b[i];
         };
         write = func (offset : Nat64, src : [Nat8]) {
-            stableMemoryStoreBlob(offset, arrayToBlob(src));
+            writeBlob(offset, arrayToBlob(src));
         };
+        writeBlob;
     };
 };

@@ -1,4 +1,4 @@
-import IC0 "mo:allocator/IC";
+import IC0 "mo:allocator/IC0";
 import A "mo:allocator/Allocator";
 
 shared actor class StableMemoryAllocator() = {

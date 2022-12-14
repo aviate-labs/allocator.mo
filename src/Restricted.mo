@@ -40,5 +40,9 @@ module {
         public func write(offset : Nat64, src : [Nat8]) {
             memory.write(start * Memory.WASM_PAGE_SIZE + offset, src);
         };
+
+        public func writeBlob(offset : Nat64, src : Blob) {
+            memory.writeBlob(start * Memory.WASM_PAGE_SIZE + offset, src);
+        };
     };
 }

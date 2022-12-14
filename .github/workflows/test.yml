@@ -8,5 +8,5 @@ jobs:
         with:
           dfx-version: 0.8.3
           vessel-version: 0.6.2
-      # - run: for i in src/*.mo ; do $(vessel bin)/moc $(vessel sources 2>/dev/null) --check $i ; done
-      - run: for i in test/*.mo ; do $(vessel bin)/moc $(vessel sources 2>/dev/null) --package stable src -r $i ; done
+      # - run: for i in $(find src -name '*.mo') ; do echo $i; $(vessel bin)/moc $(vessel sources 2>/dev/null) --check $i ; done
+      - run: for i in $(find test -name '*.mo') ; do echo $i; $(vessel bin)/moc $(vessel sources 2>/dev/null) --package stable src -r $i ; done
